@@ -1,0 +1,50 @@
+{
+  "users": [
+    {
+      "id": "auth0|1234567890",
+      "email": "dana.ops@example.com",
+      "displayName": "Dana Ops",
+      "roles": [
+        "identity.viewer",
+        "tailnet.operator"
+      ],
+      "groups": [
+        "oncall",
+        "core-networking"
+      ],
+      "devices": [
+        {
+          "id": "device-100",
+          "name": "dana-mbp",
+          "tailnetIp": "100.100.1.10",
+          "lastSeen": "2024-10-16T10:15:00Z"
+        },
+        {
+          "id": "device-101",
+          "name": "sfo-lab-gateway",
+          "tailnetIp": "100.100.2.22",
+          "lastSeen": "2024-10-15T18:05:00Z"
+        }
+      ]
+    },
+    {
+      "id": "auth0|abcdef",
+      "email": "lee.platform@example.com",
+      "displayName": "Lee Platform",
+      "roles": [
+        "identity.admin"
+      ],
+      "groups": [
+        "platform-eng"
+      ],
+      "devices": [
+        {
+          "id": "device-200",
+          "name": "lee-workstation",
+          "tailnetIp": "100.100.3.33",
+          "lastSeen": "2024-10-14T22:00:00Z"
+        }
+      ]
+    }
+  ]
+}

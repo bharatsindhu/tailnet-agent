@@ -1,0 +1,33 @@
+++ docker-compose.yaml
+version: "3.9"
+
+services:
+  identity-broker:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.broker
+    environment:
+      - AUTH0_DOMAIN=${AUTH0_DOMAIN}
+      - AUTH0_AUDIENCE=${AUTH0_AUDIENCE:-https://identity-broker.tailnet.local/api}
+      - AUTH0_ROLES_CLAIM=${AUTH0_ROLES_CLAIM}
+      - IDENTITY_DATA_PATH=/app/data/sample-users.json
+    volumes:
+      - ./infra/sample-users.json:/app/data/sample-users.json:ro
+    ports:
+      - "8080:8080"
+
+  agent:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.agent
+    environment:
+      - BROKER_URL=http://identity-broker:8080
+      - AUTH0_DOMAIN=${AUTH0_DOMAIN}
+      - AUTH0_AUDIENCE=${AUTH0_AUDIENCE:-https://identity-broker.tailnet.local/api}
+      - AUTH0_CLIENT_ID=${AUTH0_CLIENT_ID}
+      - AUTH0_CLIENT_SECRET=${AUTH0_CLIENT_SECRET}
+      - AUTH0_SCOPES=${AUTH0_SCOPES:-identity:read identity:search}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
+    depends_on:
+      - identity-broker

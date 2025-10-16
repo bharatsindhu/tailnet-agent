@@ -1,0 +1,8 @@
+++ .gitignore
+.gocache/
+.idea/
+*.log
+*.tmp
+*.env
+bin/
+dist/
