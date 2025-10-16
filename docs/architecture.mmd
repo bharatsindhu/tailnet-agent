@@ -1,0 +1,22 @@
+sequenceDiagram
+    autonumber
+    participant Admin as Admin UI / Operator
+    participant Agent as Agent Service (tailnet)
+    participant Auth0 as Auth0 Tenant
+    participant Broker as Identity Broker (tailnet)
+    participant Tool as Tool Service (tailnet)
+    participant Data as Identity Data
+
+    Admin->>Agent: 1. Trigger lookup / grant
+    Agent->>Auth0: 2. Client Credentials (client_id + secret)
+    Auth0-->>Agent: 3. Access token (identity:*, tool.access:grant)
+    Agent->>Broker: 4. Query users (bearer token, tailnet HTTP)
+    Broker->>Auth0: 5. Validate token signature (JWKS)
+    Broker->>Data: 6. Fetch identity records
+    Data-->>Broker: 7. Identity payload
+    Broker-->>Agent: 8. User list / profile
+    alt Grant flow
+        Agent->>Tool: 9. Grant Tool X permissions for user
+        Tool-->>Agent: 10. Grant recorded
+    end
+    Agent-->>Admin: 11. Summaries / status updates

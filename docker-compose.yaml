@@ -1,33 +1,49 @@
-++ docker-compose.yaml
 version: "3.9"
 
 services:
   identity-broker:
     build:
       context: .
-      dockerfile: infra/Dockerfile.broker
-    environment:
-      - AUTH0_DOMAIN=${AUTH0_DOMAIN}
-      - AUTH0_AUDIENCE=${AUTH0_AUDIENCE:-https://identity-broker.tailnet.local/api}
-      - AUTH0_ROLES_CLAIM=${AUTH0_ROLES_CLAIM}
-      - IDENTITY_DATA_PATH=/app/data/sample-users.json
-    volumes:
-      - ./infra/sample-users.json:/app/data/sample-users.json:ro
+      dockerfile: infra/railway/Dockerfile.broker
+    env_file:
+      - infra/railway/broker.env
     ports:
       - "8080:8080"
+
+  tool-service:
+    build:
+      context: .
+      dockerfile: infra/railway/Dockerfile.tool
+    env_file:
+      - infra/railway/tool-service.env
+    ports:
+      - "8090:8090"
 
   agent:
     build:
       context: .
-      dockerfile: infra/Dockerfile.agent
+      dockerfile: infra/railway/Dockerfile.agent
+    env_file:
+      - infra/railway/agent.env
     environment:
-      - BROKER_URL=http://identity-broker:8080
-      - AUTH0_DOMAIN=${AUTH0_DOMAIN}
-      - AUTH0_AUDIENCE=${AUTH0_AUDIENCE:-https://identity-broker.tailnet.local/api}
-      - AUTH0_CLIENT_ID=${AUTH0_CLIENT_ID}
-      - AUTH0_CLIENT_SECRET=${AUTH0_CLIENT_SECRET}
-      - AUTH0_SCOPES=${AUTH0_SCOPES:-identity:read identity:search}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
+      BROKER_URL: ${BROKER_URL:-http://identity-broker:8080}
+      TOOL_SERVICE_URL: ${TOOL_SERVICE_URL:-http://tool-service:8090}
+    command: ["--query", "dana"]
     depends_on:
       - identity-broker
+      - tool-service
+
+  admin-ui:
+    build:
+      context: .
+      dockerfile: infra/railway/Dockerfile.admin-ui
+    env_file:
+      - infra/railway/admin-ui.env
+    environment:
+      BROKER_URL: ${BROKER_URL:-http://identity-broker:8080}
+      TOOL_SERVICE_URL: ${TOOL_SERVICE_URL:-http://tool-service:8090}
+    ports:
+      - "8100:8100"
+    depends_on:
+      - identity-broker
+      - tool-service

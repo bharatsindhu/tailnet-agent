@@ -58,8 +58,8 @@ func (p *StaticProvider) SearchUsers(_ context.Context, query string) ([]User, e
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
-	query = strings.ToLower(strings.TrimSpace(query))
-	if query == "" {
+	q := strings.ToLower(strings.TrimSpace(query))
+	if q == "" {
 		result := make([]User, len(p.users))
 		for i := range p.users {
 			result[i] = p.users[i]
@@ -69,7 +69,14 @@ func (p *StaticProvider) SearchUsers(_ context.Context, query string) ([]User, e
 
 	var matches []User
 	for _, user := range p.users {
-		if containsIdentity(user, query) {
+		if strings.HasPrefix(q, "group:") {
+			groupName := strings.TrimPrefix(q, "group:")
+			if belongsToGroup(user, groupName) {
+				matches = append(matches, user)
+			}
+			continue
+		}
+		if containsIdentity(user, q) {
 			matches = append(matches, user)
 		}
 	}
@@ -96,6 +103,19 @@ func containsIdentity(user User, query string) bool {
 	}
 	for _, group := range user.Groups {
 		if strings.Contains(strings.ToLower(group), query) {
+			return true
+		}
+	}
+	return false
+}
+
+func belongsToGroup(user User, group string) bool {
+	group = strings.ToLower(strings.TrimSpace(group))
+	if group == "" {
+		return false
+	}
+	for _, g := range user.Groups {
+		if strings.EqualFold(g, group) {
 			return true
 		}
 	}

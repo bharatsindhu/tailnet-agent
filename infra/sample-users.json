@@ -10,7 +10,8 @@
       ],
       "groups": [
         "oncall",
-        "core-networking"
+        "core-networking",
+        "developers"
       ],
       "devices": [
         {
@@ -35,7 +36,8 @@
         "identity.admin"
       ],
       "groups": [
-        "platform-eng"
+        "platform-eng",
+        "developers"
       ],
       "devices": [
         {
