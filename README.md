@@ -3,33 +3,35 @@
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Admin as Admin UI / Operator
-    participant Agent as Agent Service (tailnet)
-    participant Auth0 as Auth0 Tenant
+    participant User as User (Tailnet)
+    participant AdminUI as Admin UI (tailnet-hosted)
+    participant Auth0 as Auth0 SaaS (internet)
     participant Broker as Identity Broker (tailnet)
     participant Tool as Tool Service (tailnet)
-    participant Data as Identity Data
+    participant Data as Identity Store
 
-    Admin->>Agent: 1. Trigger lookups / Tool X grant
-    Agent->>Auth0: 2. Client credentials exchange
-    Auth0-->>Agent: 3. Access token (identity + tool scopes)
-    Agent->>Broker: 4. Fetch developers (bearer token)
-    Broker->>Auth0: 5. Verify JWT via JWKS
-    Broker->>Data: 6. Read identity records
-    Data-->>Broker: 7. Identity payload
-    Broker-->>Agent: 8. Developers returned
-    alt Grant flow
-        Agent->>Tool: 9. Grant Tool X permissions (read/write/update)
-        Tool-->>Agent: 10. Grant recorded
-    end
-    Agent-->>Admin: 11. Summaries & status
+    User->>AdminUI: 1. Open tailnet UI
+    AdminUI->>Auth0: 2. Redirect to Auth0 (OIDC login)
+    Auth0-->>AdminUI: 3. Return authorization code
+    AdminUI->>Auth0: 4. Exchange code for tokens
+    Auth0-->>AdminUI: 5. Access & ID tokens
+    AdminUI->>Broker: 6. Fetch developers (bearer token)
+    Broker->>Auth0: 7. Validate token via JWKS
+    Broker->>Data: 8. Retrieve identity records
+    Data-->>Broker: 9. Identity payload
+    Broker-->>AdminUI: 10. Developers returned
+    AdminUI->>Tool: 11. Apply Tool X permissions (read/write/update)
+    Tool-->>AdminUI: 12. Grant recorded
+    AdminUI-->>User: 13. Show status & summaries
 ```
 
-This proof of concept showcase Tailscale for AI agents/tooling and identity use cases. An administrator uses an Auth0-protected UI (or CLI agent) running on the tailnet to:
+_Diagram source: `docs/architecture.mmd`_
 
-1. Authenticate with Auth0 using Tailscale’s private connectivity.
-2. Query the identity broker (also on the tailnet) for group membership.
-3. Grant Tool X permissions (`toolx:read toolx:write toolx:update`) to every developer through a tailnet-only tool service.
+This proof of concept showcases Tailscale for AI agents/tooling and identity use cases. An administrator uses an Auth0-protected UI (or CLI agent) running on the tailnet to:
+
+1. Authenticate via Auth0 (standard OIDC login) while the admin UI itself remains reachable only over the tailnet.
+2. Query the identity broker (tailnet-only) for group membership.
+3. Grant Tool X permissions (`toolx:read toolx:write toolx:update`) to every developer through the tailnet-only tool service.
 
 The flow demonstrates secure, identity-aware automation across Tailscale-connected services.
 
